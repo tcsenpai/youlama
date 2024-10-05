@@ -2,6 +2,8 @@
 
 YouTube Summarizer is a Streamlit-based web application that allows users to generate summaries of YouTube videos using AI-powered language models.
 
+![Screenshot](screenshot.png)
+
 ## Features
 
 - Fetch and cache YouTube video transcripts
@@ -12,12 +14,14 @@ YouTube Summarizer is a Streamlit-based web application that allows users to gen
 ## Installation
 
 1. Clone the repository:
+
    ```
    git clone https://github.com/yourusername/youtube-summarizer.git
    cd youtube-summarizer
    ```
 
 2. Install the required dependencies:
+
    ```
    pip install -r requirements.txt
    ```
@@ -32,6 +36,7 @@ YouTube Summarizer is a Streamlit-based web application that allows users to gen
 ## Usage
 
 1. Run the Streamlit app:
+
    ```
    streamlit run src/main.py
    ```
@@ -51,7 +56,6 @@ YouTube Summarizer is a Streamlit-based web application that allows users to gen
 - Ollama
 - YouTube Data API
 - Python-dotenv
-
 
 ## Project Structure
 
