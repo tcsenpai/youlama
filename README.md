@@ -1,15 +1,19 @@
 # YouTube Summarizer by TCSenpai
 
-YouTube Summarizer is a Streamlit-based web application that allows users to generate summaries of YouTube videos using AI-powered language models.
+YouTube Summarizer is a Streamlit-based web application that allows users to generate summaries of YouTube videos using AI-powered language models and optionally Whisper for transcription.
 
 ![Screenshot](screenshot.png)
 
 ## Features
 
+- Supports multiple YouTube frontends (e.g. YouTube, Invidious, etc.)
 - Fetch and cache YouTube video transcripts
 - Summarize video content using Ollama AI models
 - Display video information (title and channel)
 - Customizable Ollama URL and model selection
+- Fallback to Whisper for transcription if no transcript is found
+- Customizable Whisper URL and model selection
+- Optional force Whisper transcription
 
 ## Installation
 
@@ -28,10 +32,16 @@ YouTube Summarizer is a Streamlit-based web application that allows users to gen
 
 3. Set up environment variables:
    Create a `.env` file in the root directory and add the following:
+
    ```
    YOUTUBE_API_KEY=your_youtube_api_key
    OLLAMA_MODEL=default_model_name
+   WHISPER_URL=http://localhost:8000/
+   WHISPER_MODEL=Systran/faster-whisper-large-v3
    ```
+
+   - Note: you can copy the `env.example` file to `.env` and modify the values.
+   - Important: the `WHISPER_URL` should point to the whisper server you want to use. You can leave it as it is if you are not planning on using Whisper.
 
 ## Usage
 
@@ -46,8 +56,9 @@ YouTube Summarizer is a Streamlit-based web application that allows users to gen
 3. Enter a YouTube video URL in the input field.
 
 4. (Optional) Customize the Ollama URL and select a different AI model.
+5. (Optional) Customize the Whisper URL and select a different Whisper model.
 
-5. Click the "Summarize" button to generate a summary of the video.
+6. Click the "Summarize" button to generate a summary of the video.
 
 ## Dependencies
 
@@ -56,13 +67,18 @@ YouTube Summarizer is a Streamlit-based web application that allows users to gen
 - Ollama
 - YouTube Data API
 - Python-dotenv
+- pytubefix
+- Gradio
 
 ## Project Structure
 
 - `src/main.py`: Main Streamlit application
 - `src/ollama_client.py`: Ollama API client for model interaction
 - `src/video_info.py`: YouTube API integration for video information
+- `src/whisper_module.py`: Whisper API client for transcription
+- `src/yt_audiophile.py`: Audio downloader for YouTube videos
 - `transcript_cache/`: Directory for caching video transcripts
+- `downloads/`: Directory for downloaded audio files, might be empty
 
 ## Contributing
 

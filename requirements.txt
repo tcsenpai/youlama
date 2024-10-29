@@ -3,3 +3,8 @@ python-dotenv==1.0.1
 youtube-transcript-api==0.6.2
 requests==2.31.0
 google-api-python-client==2.101.0
+yt-dlp
+pydub
+gradio-client
+pytube
+pytubefix

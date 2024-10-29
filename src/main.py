@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 from youtube_transcript_api import YouTubeTranscriptApi
 from ollama_client import OllamaClient
 from video_info import get_video_info
+from yt_audiophile import download_audio
+from whisper_module import transcribe
 
 # Load environment variables
 load_dotenv()
@@ -91,7 +93,9 @@ def get_ollama_models(ollama_url):
     return models
 
 
-def summarize_video(video_url, model, ollama_url):
+def summarize_video(
+    video_url, model, ollama_url, fallback_to_whisper=True, force_whisper=False
+):
     video_id = video_url.split("v=")[-1]
     st.write(f"Video ID: {video_id}")
 
@@ -99,8 +103,29 @@ def summarize_video(video_url, model, ollama_url):
         transcript = get_transcript(video_id)
     st.success("Summarizer fetched successfully!")
 
+    # Forcing whisper if specified
+    if force_whisper:
+        st.warning("Forcing whisper...")
+        fallback_to_whisper = True
+        transcript = None
+
     if not transcript:
-        return "Unable to fetch transcript."
+        if not fallback_to_whisper:
+            return "Unable to fetch transcript (and fallback to whisper is disabled)"
+        if not force_whisper:
+            st.warning("Unable to fetch transcript. Trying to download audio...")
+        try:
+            download_audio(video_url)
+            st.success("Audio downloaded successfully!")
+            st.warning("Starting transcription...it might take a while...")
+            transcript = transcribe("downloads/output.m4a")
+            st.success("Transcription completed successfully!")
+            os.remove("downloads/output.m4a")
+        except Exception as e:
+            st.error(f"Error downloading audio or transcribing: {e}")
+            if os.path.exists("downloads/output.m4a"):
+                os.remove("downloads/output.m4a")
+            return "Unable to fetch transcript."
 
     ollama_client = OllamaClient(ollama_url, model)
     st.success(f"Ollama client created with model: {model}")
@@ -140,6 +165,20 @@ def main():
     if not default_model in available_models:
         available_models.append(default_model)
 
+    # Sets whisper options
+    default_whisper_url = os.getenv("WHISPER_URL")
+    whisper_url = st.text_input(
+        "Whisper URL (optional)",
+        value=default_whisper_url,
+        placeholder="Enter custom Whisper URL",
+    )
+    if not whisper_url:
+        whisper_url = default_whisper_url
+    whisper_model = os.getenv("WHISPER_MODEL")
+    if not whisper_model:
+        whisper_model = "Systran/faster-whisper-large-v3"
+    st.caption(f"Whisper model: {whisper_model}")
+
     # Create model selection dropdown
     selected_model = st.selectbox(
         "Select Ollama Model",
@@ -152,6 +191,13 @@ def main():
     )
 
     video_url = st.text_input("Enter the YouTube video URL:")
+
+    # Add checkboxes for whisper options
+    col1, col2 = st.columns(2)
+    with col1:
+        force_whisper = st.checkbox("Force Whisper", value=False)
+    with col2:
+        fallback_to_whisper = st.checkbox("Fallback to Whisper", value=True)
 
     # Support any video that has a valid YouTube ID
     if not "https://www.youtube.com/watch?v=" or "https://youtu.be/" in video_url:
@@ -167,7 +213,13 @@ def main():
 
     if st.button("Summarize"):
         if video_url:
-            summary = summarize_video(video_url, selected_model, ollama_url)
+            summary = summarize_video(
+                video_url,
+                selected_model,
+                ollama_url,
+                fallback_to_whisper=fallback_to_whisper,
+                force_whisper=force_whisper,
+            )
             st.subheader("Summary:")
             st.write(summary)
         else:
