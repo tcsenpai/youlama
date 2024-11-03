@@ -110,11 +110,15 @@ def summarize_video(
         transcript = None
 
     if not transcript:
+        print("No transcript found, trying to download audio...")
         if not fallback_to_whisper:
+            print("Fallback to whisper is disabled")
             return "Unable to fetch transcript (and fallback to whisper is disabled)"
         if not force_whisper:
+            print("Force whisper is disabled")
             st.warning("Unable to fetch transcript. Trying to download audio...")
         try:
+            print("Downloading audio...")
             download_audio(video_url)
             st.success("Audio downloaded successfully!")
             st.warning("Starting transcription...it might take a while...")
@@ -122,18 +126,20 @@ def summarize_video(
             st.success("Transcription completed successfully!")
             os.remove("downloads/output.m4a")
         except Exception as e:
+            print(f"Error downloading audio or transcribing: {e}")
             st.error(f"Error downloading audio or transcribing: {e}")
             if os.path.exists("downloads/output.m4a"):
                 os.remove("downloads/output.m4a")
             return "Unable to fetch transcript."
-
+    print(f"Transcript: {transcript}")
     ollama_client = OllamaClient(ollama_url, model)
     st.success(f"Ollama client created with model: {model}")
 
     st.warning("Starting summary generation, this might take a while...")
     with st.spinner("Generating summary..."):
-        prompt = f"Summarize the following YouTube video transcript:\n\n{transcript}\n\nSummary:"
+        prompt = f"Summarize the following YouTube video transcript in a concise yet detailed manner:\n\n```{transcript}```\n\nSummary with introduction and conclusion formatted in markdown:"
         summary = ollama_client.generate(prompt)
+    print(summary)
     st.success("Summary generated successfully!")
 
     with st.spinner("Fetching video info..."):

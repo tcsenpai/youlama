@@ -11,10 +11,16 @@ class OllamaClient:
     def __init__(self, base_url, model):
         self.base_url = base_url
         self.model = model
-        self.context_size_table = {"llama3.1": 128000, "mistral-nemo": 128000}
+        self.context_size_table = {
+            "llama3.1": 128000,
+            "mistral-nemo": 128000,
+            "mistral_small_obliterated_22b": 128000,
+        }
         self.context_size = 2048
         if self.model not in self.context_size_table:
-            print(f"Model {self.model} not found in context size table: using default {self.context_size}")
+            print(
+                f"Model {self.model} not found in context size table: using default {self.context_size}"
+            )
         else:
             self.context_size = self.context_size_table[self.model]
             print(f"Using context size {self.context_size} for model {self.model}")
