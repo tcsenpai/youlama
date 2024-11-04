@@ -1,5 +1,7 @@
 # YouTube Summarizer by TCSenpai
 
+[![justforfunnoreally.dev badge](https://img.shields.io/badge/justforfunnoreally-dev-9ff)](https://justforfunnoreally.dev)
+
 YouTube Summarizer is a Streamlit-based web application that allows users to generate summaries of YouTube videos using AI-powered language models and optionally Whisper for transcription.
 
 ![Screenshot](screenshot.png)
