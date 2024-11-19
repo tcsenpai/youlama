@@ -4,6 +4,18 @@
 
 YouTube Summarizer is a Streamlit-based web application that allows users to generate summaries of YouTube videos using AI-powered language models and optionally Whisper for transcription.
 
+- [YouTube Summarizer by TCSenpai](#youtube-summarizer-by-tcsenpai)
+  - [Features](#features)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [Global Installation](#global-installation)
+  - [Run with the included binary](#run-with-the-included-binary)
+  - [Dependencies](#dependencies)
+  - [Project Structure](#project-structure)
+  - [Contributing](#contributing)
+  - [License](#license)
+  - [Credits](#credits)
+
 ![Screenshot](screenshot.png)
 
 ## Features
@@ -61,6 +73,24 @@ YouTube Summarizer is a Streamlit-based web application that allows users to gen
 5. (Optional) Customize the Whisper URL and select a different Whisper model.
 
 6. Click the "Summarize" button to generate a summary of the video.
+
+## Global Installation
+
+You can install the application globally on your system by running the following command:
+
+```
+sudo ./install.sh
+```
+
+This will create a new command `youlama` that you can use to run the application.
+
+## Run with the included binary
+
+You can also run the application with the included binary:
+
+```
+./youlama
+```
 
 ## Dependencies
 

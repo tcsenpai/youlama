@@ -1,0 +1,12 @@
+#!/bin/bash
+    
+# Install dependencies
+if [ ! -f .installed ]; then
+    echo "Installing dependencies..."
+    pip install -r requirements.txt || exit 1
+    touch .installed
+fi
+
+# Run the app
+echo "Running the app..."
+streamlit run src/main.py
