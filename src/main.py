@@ -7,6 +7,8 @@ from ollama_client import OllamaClient
 from video_info import get_video_info
 from yt_audiophile import download_audio
 from whisper_module import transcribe
+from pastebin_client import create_paste
+from pathlib import Path
 
 # Load environment variables
 load_dotenv()
@@ -17,48 +19,108 @@ st.set_page_config(
     page_icon="src/assets/subtitles.png",
 )
 
-# Custom CSS for the banner
+# Add this after set_page_config
 st.markdown(
     """
     <style>
-    .banner {
-        position: fixed;
-        top: 60px;  /* Adjusted to position below Streamlit header */
-        left: 0;
-        right: 0;
-        z-index: 998;  /* Reduced z-index to be below Streamlit elements */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: black;
-        padding: 0.5rem 1rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .banner-title {
-        color: white;
-        text-align: center;
-        margin: 0;
-        font-size: 1rem;
-    }
-    .stApp {
-        margin-top: 120px;  /* Increased to accommodate both headers */
-    }
+        /* Custom styles for the main page */
+        .stApp {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .toggle-header-btn {
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #4CAF50;
+            background-color: transparent;
+            color: #4CAF50;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .toggle-header-btn:hover {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        /* Improved input styling */
+        .stTextInput input {
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+        }
+        .stTextInput input:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 1px #4CAF50;
+        }
+        
+        /* Button styling */
+        .stButton button {
+            border-radius: 5px;
+            padding: 4px 25px;
+            transition: all 0.3s;
+        }
+        .stButton button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
     </style>
-    """,
+""",
     unsafe_allow_html=True,
 )
 
-# Banner with icon and title
-st.markdown(
-    """
-    <div class="banner">
-        <h3 class="banner-title" align="center">YouTube Summarizer by TCSenpai</h3>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+# Initialize session state for messages if not exists
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-# Initialize Rich console
+# Create a single header container
+header = st.container()
+
+def show_warning(message):
+    update_header("⚠️ " + message)
+
+def show_error(message):
+    update_header("🚫 " + message)
+
+def show_info(message):
+    update_header("✅ " + message)
+
+def update_header(message):
+    with header:
+        st.markdown(
+            f"""
+            <div class='fixed-header'>
+                {message}
+            </div>
+            <style>
+                div.fixed-header {{
+                    position: fixed;
+                    top: 2.875rem;
+                    left: 0;
+                    right: 0;
+                    z-index: 999;
+                    padding: 10px;
+                    margin: 0 1rem;
+                    border-radius: 0.5rem;
+                    border: 1px solid rgba(128, 128, 128, 0.2);
+                    height: 45px !important;
+                    background-color: rgba(40, 40, 40, 0.95);
+                    backdrop-filter: blur(5px);
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                }}
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
+# Initialize the header with a ready message
+update_header("✅ Ready to summarize!")
+
+# Add spacing after the fixed header
+# st.markdown("<div style='margin-top: 120px;'></div>", unsafe_allow_html=True)
 
 
 def get_transcript(video_id):
@@ -101,11 +163,11 @@ def summarize_video(
 
     with st.spinner("Fetching transcript..."):
         transcript = get_transcript(video_id)
-    st.success("Summarizer fetched successfully!")
+    show_info("Summarizer fetched successfully!")
 
     # Forcing whisper if specified
     if force_whisper:
-        st.warning("Forcing whisper...")
+        show_warning("Forcing whisper...")
         fallback_to_whisper = True
         transcript = None
 
@@ -115,38 +177,42 @@ def summarize_video(
             print("Fallback to whisper is disabled")
             return "Unable to fetch transcript (and fallback to whisper is disabled)"
         if not force_whisper:
-            print("Force whisper is disabled")
-            st.warning("Unable to fetch transcript. Trying to download audio...")
+            show_warning("Unable to fetch transcript. Trying to download audio...")
         try:
             print("Downloading audio...")
             download_audio(video_url)
-            st.success("Audio downloaded successfully!")
-            st.warning("Starting transcription...it might take a while...")
+            show_info("Audio downloaded successfully!")
+            show_warning("Starting transcription...it might take a while...")
             transcript = transcribe("downloads/output.m4a")
-            st.success("Transcription completed successfully!")
+            show_info("Transcription completed successfully!")
             os.remove("downloads/output.m4a")
         except Exception as e:
             print(f"Error downloading audio or transcribing: {e}")
-            st.error(f"Error downloading audio or transcribing: {e}")
+            show_error(f"Error downloading audio or transcribing: {e}")
             if os.path.exists("downloads/output.m4a"):
                 os.remove("downloads/output.m4a")
             return "Unable to fetch transcript."
     print(f"Transcript: {transcript}")
     ollama_client = OllamaClient(ollama_url, model)
-    st.success(f"Ollama client created with model: {model}")
+    show_info(f"Ollama client created with model: {model}")
 
-    st.warning("Starting summary generation, this might take a while...")
+    show_warning("Starting summary generation, this might take a while...")
     with st.spinner("Generating summary..."):
         prompt = f"Summarize the following YouTube video transcript in a concise yet detailed manner:\n\n```{transcript}```\n\nSummary with introduction and conclusion formatted in markdown:"
         summary = ollama_client.generate(prompt)
     print(summary)
-    st.success("Summary generated successfully!")
+    show_info("Summary generated successfully!")
 
     with st.spinner("Fetching video info..."):
         video_info = get_video_info(video_id)
     st.success("Video info fetched successfully!")
 
-    return f"Title: {video_info['title']}\n\nChannel: {video_info['channel']}\n\nSummary:\n{summary}"
+    return {
+        "title": video_info["title"],
+        "channel": video_info["channel"],
+        "transcript": transcript,
+        "summary": summary,
+    }
 
 
 def main():
@@ -186,24 +252,55 @@ def main():
     st.caption(f"Whisper model: {whisper_model}")
 
     # Create model selection dropdown
-    selected_model = st.selectbox(
-        "Select Ollama Model",
-        options=available_models,
-        index=(
-            available_models.index(default_model)
-            if default_model in available_models
-            else 0
-        ),
-    )
+    # selected_model = st.selectbox(
+    #    "Select Ollama Model",
+    #    options=available_models,
+    #    index=(
+    #        available_models.index(default_model)
+    #        if default_model in available_models
+    #        else 0
+    #    ),
+    # )
 
-    video_url = st.text_input("Enter the YouTube video URL:")
-
-    # Add checkboxes for whisper options
-    col1, col2 = st.columns(2)
+    # Use columns for URL and model inputs
+    col1, col2 = st.columns([2, 1])
     with col1:
-        force_whisper = st.checkbox("Force Whisper", value=False)
+        video_url = st.text_input(
+            "Enter the YouTube video URL:",
+            placeholder="https://www.youtube.com/watch?v=...",
+        )
     with col2:
-        fallback_to_whisper = st.checkbox("Fallback to Whisper", value=True)
+        selected_model = st.selectbox(
+            "Select Ollama Model",
+            options=available_models,
+            index=(
+                available_models.index(default_model)
+                if default_model in available_models
+                else 0
+            ),
+        )
+
+    # Group Ollama and Whisper settings
+    with st.expander("Advanced Settings"):
+        col1, col2 = st.columns(2)
+        with col1:
+            ollama_url = st.text_input(
+                "Ollama URL",
+                value=default_ollama_url,
+                placeholder="Enter custom Ollama URL",
+            )
+        with col2:
+            whisper_url = st.text_input(
+                "Whisper URL",
+                value=default_whisper_url,
+                placeholder="Enter custom Whisper URL",
+            )
+
+        col1, col2 = st.columns(2)
+        with col1:
+            force_whisper = st.checkbox("Force Whisper", value=False)
+        with col2:
+            fallback_to_whisper = st.checkbox("Fallback to Whisper", value=True)
 
     # Support any video that has a valid YouTube ID
     if not "https://www.youtube.com/watch?v=" or "https://youtu.be/" in video_url:
@@ -226,8 +323,42 @@ def main():
                 fallback_to_whisper=fallback_to_whisper,
                 force_whisper=force_whisper,
             )
+            st.subheader("Video Information:")
+            st.write(f"**Title:** {summary['title']}")
+            st.write(f"**Channel:** {summary['channel']}")
+
             st.subheader("Summary:")
-            st.write(summary)
+            st.write(summary["summary"])
+
+            st.subheader("Original Transcript:")
+            st.text_area(
+                "Full Transcript", summary["transcript"], height=300, disabled=True
+            )
+
+            # Share button moved here, after the transcript
+            if st.button("Share Transcript"):
+                try:
+                    content = f"""Video Title: {summary['title']}
+Channel: {summary['channel']}
+URL: {video_url}
+
+--- Transcript ---
+
+{summary['transcript']}"""
+
+                    paste_url = create_paste(
+                        f"Transcript: {summary['title']}", content
+                    )
+                    st.success(
+                        f"Transcript shared successfully! [View here]({paste_url})"
+                    )
+                except Exception as e:
+                    if "PASTEBIN_API_KEY" not in os.environ:
+                        st.warning(
+                            "PASTEBIN_API_KEY not found in environment variables"
+                        )
+                    else:
+                        st.error(f"Error sharing transcript: {str(e)}")
         else:
             st.error("Please enter a valid YouTube video URL.")
 
