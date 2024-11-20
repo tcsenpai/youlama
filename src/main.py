@@ -313,6 +313,10 @@ def main():
         else:
             st.error("Please enter a valid YouTube video URL.")
             return
+    # Support short urls as well
+    if "https://youtu.be/" in video_url:
+        video_id = video_url.split("youtu.be/")[-1]
+        video_url = f"https://www.youtube.com/watch?v={video_id}"
 
     if st.button("Summarize"):
         if video_url:
