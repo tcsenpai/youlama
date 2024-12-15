@@ -76,14 +76,18 @@ if "messages" not in st.session_state:
 # Create a single header container
 header = st.container()
 
+
 def show_warning(message):
     update_header("⚠️ " + message)
+
 
 def show_error(message):
     update_header("🚫 " + message)
 
+
 def show_info(message):
     update_header("✅ " + message)
+
 
 def update_header(message):
     with header:
@@ -115,6 +119,7 @@ def update_header(message):
             """,
             unsafe_allow_html=True,
         )
+
 
 # Initialize the header with a ready message
 update_header("✅ Ready to summarize!")
@@ -158,7 +163,15 @@ def get_ollama_models(ollama_url):
 def summarize_video(
     video_url, model, ollama_url, fallback_to_whisper=True, force_whisper=False
 ):
-    video_id = video_url.split("v=")[-1]
+    video_id = None
+    # Get the video id from the url if it's a valid youtube or invidious or any other url that contains a video id
+    if "v=" in video_url:
+        video_id = video_url.split("v=")[-1]
+    # Support short urls as well
+    elif "youtu.be/" in video_url:
+        video_id = video_url.split("youtu.be/")[-1]
+    # Also cut out any part of the url after the video id
+    video_id = video_id.split("&")[0]
     st.write(f"Video ID: {video_id}")
 
     with st.spinner("Fetching transcript..."):
@@ -350,9 +363,7 @@ URL: {video_url}
 
 {summary['transcript']}"""
 
-                    paste_url = create_paste(
-                        f"Transcript: {summary['title']}", content
-                    )
+                    paste_url = create_paste(f"Transcript: {summary['title']}", content)
                     st.success(
                         f"Transcript shared successfully! [View here]({paste_url})"
                     )
