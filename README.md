@@ -40,9 +40,19 @@ YouTube Summarizer is a Streamlit-based web application that allows users to gen
 
 2. Install the required dependencies:
 
+   2a. Using pip:
+
    ```
    pip install -r requirements.txt
    ```
+
+   2b. Using conda:
+
+   ```
+   conda env create -f environment.yml
+   ```
+
+   Note: You might need to install `conda` first.
 
 3. Set up environment variables:
    Create a `.env` file in the root directory and add the following:
@@ -52,10 +62,12 @@ YouTube Summarizer is a Streamlit-based web application that allows users to gen
    OLLAMA_MODEL=default_model_name
    WHISPER_URL=http://localhost:8000/
    WHISPER_MODEL=Systran/faster-whisper-large-v3
+   PASTEBIN_API_KEY=your_pastebin_api_key
    ```
 
    - Note: you can copy the `env.example` file to `.env` and modify the values.
    - Important: the `WHISPER_URL` should point to the whisper server you want to use. You can leave it as it is if you are not planning on using Whisper.
+   - Important: the `PASTEBIN_API_KEY` is optional, but if you want to use it, you need to get one from [Pastebin](https://pastebin.com/doc_api).
 
 ## Usage
 
