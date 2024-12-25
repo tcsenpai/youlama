@@ -177,7 +177,7 @@ def show_error(message):
 
 
 def show_info(message):
-    update_header("✅ " + message)
+    update_header("��� " + message)
 
 
 def update_header(message):
@@ -352,7 +352,7 @@ def main():
 
     # Video URL input section
     with st.container():
-        url_col, button_col = st.columns([4, 1])
+        url_col, button_col1, button_col2 = st.columns([3, 1, 1])
 
         with url_col:
             video_url = st.text_input(
@@ -360,8 +360,11 @@ def main():
                 placeholder="https://www.youtube.com/watch?v=...",
             )
 
-        with button_col:
+        with button_col1:
             summarize_button = st.button("🚀 Summarize", use_container_width=True)
+
+        with button_col2:
+            rephrase_button = st.button("🔄 Rephrase Only", use_container_width=True)
 
     # Advanced settings in collapsible sections
     with st.expander("⚙️ Advanced Settings"):
@@ -390,72 +393,109 @@ def main():
         with adv_col2:
             fallback_to_whisper = st.checkbox("Fallback to Whisper", value=True)
 
-    if summarize_button and video_url:
-        summary = summarize_video(
-            video_url,
-            selected_model,
-            ollama_url,
-            fallback_to_whisper=fallback_to_whisper,
-            force_whisper=force_whisper,
-        )
+    if (summarize_button or rephrase_button) and video_url:
+        video_id = None
+        if "v=" in video_url:
+            video_id = video_url.split("v=")[-1]
+        elif "youtu.be/" in video_url:
+            video_id = video_url.split("youtu.be/")[-1]
+        video_id = video_id.split("&")[0]
+        st.write(f"Video ID: {video_id}")
 
-        # Video Information
-        st.subheader("📺 Video Information")
-        info_col1, info_col2 = st.columns(2)
-        with info_col1:
-            st.write(f"**Title:** {summary['title']}")
-        with info_col2:
-            st.write(f"**Channel:** {summary['channel']}")
+        with st.spinner("Fetching transcript..."):
+            transcript = get_transcript(video_id)
 
-        # Transcript Section
-        with st.expander("📝 Original Transcript", expanded=False):
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                st.text_area(
-                    "Raw Transcript",
-                    summary["transcript"],
-                    height=200,
-                    disabled=True,
+        if transcript:
+            show_info("Transcript fetched successfully!")
+
+            if rephrase_button:
+                # Only rephrase the transcript
+                show_warning("Starting rephrasing, this might take a while...")
+                with st.spinner("Rephrasing transcript..."):
+                    ollama_client = OllamaClient(ollama_url, selected_model)
+                    prompt = f"Rephrase the following transcript to make it more readable and well-formatted, keeping the main content intact:\n\n{transcript}"
+                    rephrased = ollama_client.generate(prompt)
+
+                video_info = get_video_info(video_id)
+
+                # Display results
+                st.subheader("📺 Video Information")
+                info_col1, info_col2 = st.columns(2)
+                with info_col1:
+                    st.write(f"**Title:** {video_info['title']}")
+                with info_col2:
+                    st.write(f"**Channel:** {video_info['channel']}")
+
+                st.subheader("📝 Rephrased Transcript")
+                st.markdown(rephrased)
+
+            elif summarize_button:
+                # Continue with existing summarize functionality
+                summary = summarize_video(
+                    video_url,
+                    selected_model,
+                    ollama_url,
+                    fallback_to_whisper=fallback_to_whisper,
+                    force_whisper=force_whisper,
                 )
-            with col2:
-                if st.button("🔄 Rephrase"):
-                    with st.spinner("Rephrasing transcript..."):
-                        ollama_client = OllamaClient(ollama_url, selected_model)
-                        prompt = f"Rephrase the following transcript to make it more readable and well-formatted, keeping the main content intact:\n\n{summary['transcript']}"
-                        st.session_state.rephrased_transcript = ollama_client.generate(
-                            prompt
-                        )
 
-                if st.button("📋 Share"):
-                    try:
-                        content = f"""Video Title: {summary['title']}
+                # Video Information
+                st.subheader("📺 Video Information")
+                info_col1, info_col2 = st.columns(2)
+                with info_col1:
+                    st.write(f"**Title:** {summary['title']}")
+                with info_col2:
+                    st.write(f"**Channel:** {summary['channel']}")
+
+                # Transcript Section
+                with st.expander("📝 Original Transcript", expanded=False):
+                    col1, col2 = st.columns([3, 1])
+                    with col1:
+                        st.text_area(
+                            "Raw Transcript",
+                            summary["transcript"],
+                            height=200,
+                            disabled=True,
+                        )
+                    with col2:
+                        if st.button("🔄 Rephrase"):
+                            with st.spinner("Rephrasing transcript..."):
+                                ollama_client = OllamaClient(ollama_url, selected_model)
+                                prompt = f"Rephrase the following transcript to make it more readable and well-formatted, keeping the main content intact:\n\n{summary['transcript']}"
+                                st.session_state.rephrased_transcript = (
+                                    ollama_client.generate(prompt)
+                                )
+
+                        if st.button("📋 Share"):
+                            try:
+                                content = f"""Video Title: {summary['title']}
 Channel: {summary['channel']}
 URL: {video_url}
 
 --- Transcript ---
 
 {summary['transcript']}"""
-                        paste_url = create_paste(
-                            f"Transcript: {summary['title']}", content
-                        )
-                        st.success(
-                            f"Transcript shared successfully! [View here]({paste_url})"
-                        )
-                    except Exception as e:
-                        if "PASTEBIN_API_KEY" not in os.environ:
-                            st.warning(
-                                "PASTEBIN_API_KEY not found in environment variables"
-                            )
-                        else:
-                            st.error(f"Error sharing transcript: {str(e)}")
+                                paste_url = create_paste(
+                                    f"Transcript: {summary['title']}", content
+                                )
+                                st.success(
+                                    f"Transcript shared successfully! [View here]({paste_url})"
+                                )
+                            except Exception as e:
+                                if "PASTEBIN_API_KEY" not in os.environ:
+                                    st.warning(
+                                        "PASTEBIN_API_KEY not found in environment variables"
+                                    )
+                                else:
+                                    st.error(f"Error sharing transcript: {str(e)}")
 
-        # Summary Section
-        st.subheader("📊 AI Summary")
-        st.markdown(summary["summary"])
+                # Summary Section
+                st.subheader("📊 AI Summary")
+                st.markdown(summary["summary"])
 
-        # After the rephrase button, add:
-        if st.session_state.rephrased_transcript:
-            st.markdown(st.session_state.rephrased_transcript)
+                # After the rephrase button, add:
+                if st.session_state.rephrased_transcript:
+                    st.markdown(st.session_state.rephrased_transcript)
 
 
 if __name__ == "__main__":
