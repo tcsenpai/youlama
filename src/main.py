@@ -177,7 +177,7 @@ def show_error(message):
 
 
 def show_info(message):
-    update_header("��� " + message)
+    update_header("������� " + message)
 
 
 def update_header(message):
@@ -410,10 +410,12 @@ def main():
 
             if rephrase_button:
                 # Only rephrase the transcript
-                show_warning("Starting rephrasing, this might take a while...")
-                with st.spinner("Rephrasing transcript..."):
+                show_warning("Starting grammar and punctuation fixes...")
+                with st.spinner("Fixing transcript..."):
                     ollama_client = OllamaClient(ollama_url, selected_model)
-                    prompt = f"Rephrase the following transcript to make it more readable and well-formatted, keeping the main content intact:\n\n{transcript}"
+                    prompt = f"""Fix the grammar and punctuation of the following transcript, maintaining the exact same content and meaning. 
+                    Only correct grammatical errors, add proper punctuation, and fix sentence structure where needed. 
+                    Do not rephrase or change the content:\n\n{transcript}"""
                     rephrased = ollama_client.generate(prompt)
 
                 video_info = get_video_info(video_id)
@@ -426,7 +428,7 @@ def main():
                 with info_col2:
                     st.write(f"**Channel:** {video_info['channel']}")
 
-                st.subheader("📝 Rephrased Transcript")
+                st.subheader("📝 Fixed Transcript")
                 st.markdown(rephrased)
 
             elif summarize_button:
