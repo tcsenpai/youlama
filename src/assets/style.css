@@ -1,0 +1,182 @@
+/* Base theme */
+:root {
+  --primary-color: #00b4d8;
+  --bg-color: #1b1b1b;
+  --card-bg: #2d2d2d;
+  --text-color: #f0f0f0;
+  --border-color: #404040;
+  --hover-color: #90e0ef;
+}
+
+/* Main container */
+.stApp {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+/* Responsive container */
+.stApp > div:nth-child(2) {
+  padding: 2rem !important;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .stApp > div:nth-child(2) {
+    padding: 2rem 5rem !important;
+  }
+}
+
+/* Headers */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: white !important;
+  font-weight: 600 !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Input fields */
+.stTextInput input,
+.stSelectbox select {
+  background-color: var(--card-bg) !important;
+  color: var(--text-color) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: clamp(14px, 2vw, 16px);
+  transition: all 0.3s;
+  width: 100% !important;
+}
+
+.stTextInput input:focus,
+.stSelectbox select:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 2px rgba(114, 137, 218, 0.2);
+}
+
+/* Buttons */
+.stButton button {
+  background: linear-gradient(45deg, var(--primary-color), #8ea1e1) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 600 !important;
+  width: 100% !important;
+  transition: all 0.3s !important;
+  font-size: clamp(14px, 2vw, 16px);
+}
+
+.stButton button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(114, 137, 218, 0.3);
+}
+
+/* Cards */
+.card {
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+  transition: all 0.3s;
+}
+
+.card:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Expander */
+.streamlit-expanderHeader {
+  background-color: var(--card-bg) !important;
+  color: var(--text-color) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  padding: 1rem !important;
+  font-size: clamp(14px, 2vw, 16px);
+}
+
+.streamlit-expanderContent {
+  border: none !important;
+  padding: 1rem 0 0 0 !important;
+}
+
+/* Status messages */
+.stSuccess,
+.stInfo,
+.stWarning,
+.stError {
+  background-color: var(--card-bg) !important;
+  color: var(--text-color) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  padding: 1rem !important;
+  font-size: clamp(14px, 2vw, 16px);
+}
+
+/* Hide Streamlit branding */
+#MainMenu {
+  visibility: hidden;
+}
+footer {
+  visibility: hidden;
+}
+
+/* Column spacing */
+[data-testid="column"] {
+  padding: 0.5rem !important;
+}
+
+/* Checkbox and radio */
+.stCheckbox,
+.stRadio {
+  font-size: clamp(14px, 2vw, 16px);
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .stButton button {
+    padding: 0.5rem 1rem !important;
+  }
+
+  [data-testid="column"] {
+    padding: 0.25rem !important;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+}
+
+/* Add these styles for sections */
+.stTextInput,
+.stSelectbox,
+.stButton {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.streamlit-expanderHeader {
+  background-color: var(--card-bg) !important;
+  border-radius: 8px !important;
+  margin-bottom: 1rem;
+}
+
+.streamlit-expanderContent {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  padding: 1rem !important;
+  margin-top: 0.5rem;
+}
+
+/* Add spacing between sections */
+.stMarkdown {
+  margin-bottom: 1.5rem;
+}
