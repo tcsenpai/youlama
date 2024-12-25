@@ -421,19 +421,20 @@ def main():
 
     # Video URL input section
     with st.container():
-        col1, col2, col3 = st.columns([3, 1, 1])
+        # URL in its own row
+        video_url = st.text_input(
+            "🎥 Video URL",
+            placeholder="https://www.youtube.com/watch?v=...",
+        )
+
+        # Buttons in a separate row
+        col1, col2 = st.columns(2)
 
         with col1:
-            video_url = st.text_input(
-                "🎥 Video URL",
-                placeholder="https://www.youtube.com/watch?v=...",
-            )
-
-        with col2:
             summarize_button = st.button("🚀 Summarize", use_container_width=True)
 
-        with col3:
-            enhance_button = st.button("✨ Enhance", use_container_width=True)
+        with col2:
+            read_button = st.button("📖 Read", use_container_width=True)
 
     # Advanced settings in collapsible sections
     with st.expander("⚙️ Advanced Settings"):
@@ -462,9 +463,9 @@ def main():
         with adv_col2:
             fallback_to_whisper = st.checkbox("Fallback to Whisper", value=True)
 
-    if (summarize_button or enhance_button) and video_url:
-        if enhance_button:
-            # Enhance transcript
+    if (summarize_button or read_button) and video_url:
+        if read_button:
+            # Enhance transcript (now called read)
             result = fix_transcript(
                 video_url,
                 selected_model,
