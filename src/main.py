@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from youtube_transcript_api import YouTubeTranscriptApi
 from ollama_client import OllamaClient
 from video_info import get_video_info
-from yt_audiophile import download_audio
+from yt_audiophile import download_audio, get_po_token_setting
 from whisper_module import transcribe
 from pastebin_client import create_paste
 from pathlib import Path
