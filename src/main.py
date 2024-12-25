@@ -37,10 +37,10 @@ def main():
     # Load CSS
     load_css()
 
-    st.write("#### YouTube Video Companion")
+    # st.write("###### YouTube Video Companion")
 
     # Ollama Settings section
-    #st.subheader("🎯 Ollama Settings")
+    # st.subheader("🎯 Ollama Settings")
 
     default_ollama_url = os.getenv("OLLAMA_URL")
     ollama_url = st.text_input(
@@ -117,35 +117,45 @@ def main():
         update_header("🚫 " + message)
 
     def show_info(message):
-        update_header("> " + message)
+        update_header("💡 " + message)
 
     def update_header(message):
         with header:
             st.markdown(
                 f"""
                 <div class='fixed-header'>
-                    {message}
+                    <div class='header-message'>{message}</div>
+                    <div class='header-title'>YouLama - A YouTube Video Companion</div>
+                    <style>
+                        div.fixed-header {{
+                            position: fixed;
+                            top: 2.875rem;
+                            left: 0;
+                            right: 0;
+                            z-index: 999;
+                            padding: 10px;
+                            margin: 0 1rem;
+                            border-radius: 0.5rem;
+                            border: 1px solid rgba(128, 128, 128, 0.2);
+                            height: 45px !important;
+                            background-color: rgba(40, 40, 40, 0.95);
+                            backdrop-filter: blur(5px);
+                            box-shadow: 0 4px 6px rgb(0, 0, 0, 0.1);
+                            transition: all 0.3s ease;
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                        }}
+                        .header-message {{
+                            flex: 1;
+                        }}
+                        .header-title {{
+                            color: rgba(250, 250, 250, 0.8);
+                            font-size: 0.9em;
+                            margin-left: 20px;
+                        }}
+                    </style>
                 </div>
-                <style>
-                    div.fixed-header {{
-                        position: fixed;
-                        top: 2.875rem;
-                        left: 0;
-                        right: 0;
-                        z-index: 999;
-                        padding: 10px;
-                        margin: 0 1rem;
-                        border-radius: 0.5rem;
-                        border: 1px solid rgba(128, 128, 128, 0.2);
-                        height: 45px !important;
-                        background-color: rgba(40, 40, 40, 0.95);
-                        backdrop-filter: blur(5px);
-                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                        transition: all 0.3s ease;
-                        display: flex;
-                        align-items: center;
-                    }}
-                </style>
                 """,
                 unsafe_allow_html=True,
             )
@@ -242,7 +252,7 @@ def main():
             prompt = f"Summarize the following YouTube video transcript in a concise yet detailed manner:\n\n```{transcript}```\n\nSummary with introduction and conclusion formatted in markdown:"
             summary = ollama_client.generate(prompt)
         print(summary)
-        show_info("Summary generated successfully!")
+        show_info("Summary generated successfully (scroll down to see the summary)!")
 
         with st.spinner("Fetching video info..."):
             video_info = get_video_info(video_id)
@@ -317,7 +327,9 @@ def main():
             Only correct grammatical errors, add proper punctuation, and fix sentence structure where needed. 
             Do not rephrase or change the content:\n\n{transcript}"""
             enhanced = ollama_client.generate(prompt)
-        show_info("Transcript enhanced successfully!")
+        show_info(
+            "Transcript enhanced successfully (scroll down to see the enhanced transcript)!"
+        )
 
         with st.spinner("Fetching video info..."):
             video_info = get_video_info(video_id)
