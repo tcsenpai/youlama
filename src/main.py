@@ -17,55 +17,142 @@ load_dotenv()
 st.set_page_config(
     page_title="YouTube Summarizer by TCSenpai",
     page_icon="src/assets/subtitles.png",
+    layout="wide",  # This ensures full width
 )
 
-# Add this after set_page_config
+# Add custom CSS with a modern, clean design
 st.markdown(
     """
     <style>
-        /* Custom styles for the main page */
+        /* Base theme */
+        :root {
+            --primary-color: #7289da;
+            --bg-color: #1a1b1e;
+            --card-bg: #2c2d30;
+            --text-color: #e0e0e0;
+            --border-color: #404246;
+            --hover-color: #3a3b3e;
+        }
+
+        /* Main container */
         .stApp {
-            max-width: 1200px;
-            margin: 0 auto;
+            background-color: var(--bg-color);
+            color: var(--text-color);
         }
-        
-        .toggle-header-btn {
-            padding: 5px 10px;
-            border-radius: 5px;
-            border: 1px solid #4CAF50;
-            background-color: transparent;
-            color: #4CAF50;
-            cursor: pointer;
+
+        /* Fix container width */
+        .stApp > header {
+            background-color: var(--bg-color);
+        }
+
+        .stApp > div:nth-child(2) {
+            padding-left: 5rem !important;
+            padding-right: 5rem !important;
+        }
+
+        /* Headers */
+        h1, h2, h3, h4, h5, h6 {
+            color: white !important;
+            font-weight: 600 !important;
+            margin-bottom: 1rem !important;
+        }
+
+        /* Input fields */
+        .stTextInput input, .stSelectbox select {
+            background-color: var(--bg-color) !important;
+            color: var(--text-color) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 16px;
             transition: all 0.3s;
+            width: 100% !important;
         }
-        .toggle-header-btn:hover {
-            background-color: #4CAF50;
-            color: white;
-        }
-        
-        /* Improved input styling */
-        .stTextInput input {
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            padding: 8px 12px;
-        }
-        .stTextInput input:focus {
-            border-color: #4CAF50;
-            box-shadow: 0 0 0 1px #4CAF50;
-        }
-        
-        /* Button styling */
+
+        /* Buttons */
         .stButton button {
-            border-radius: 5px;
-            padding: 4px 25px;
-            transition: all 0.3s;
+            background: linear-gradient(45deg, var(--primary-color), #8ea1e1) !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 8px !important;
+            padding: 12px 24px !important;
+            font-weight: 600 !important;
+            width: 100% !important;
+            transition: all 0.3s !important;
         }
+
         .stButton button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(114,137,218,0.3);
+        }
+
+        /* Settings cards */
+        .settings-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1rem;
+        }
+
+        /* Remove default container styling */
+        .element-container {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        /* Clean up expander */
+        .streamlit-expanderHeader {
+            background-color: var(--card-bg) !important;
+            color: var(--text-color) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 8px !important;
+            padding: 1rem !important;
+        }
+
+        .streamlit-expanderContent {
+            border: none !important;
+            padding: 1rem 0 0 0 !important;
+        }
+
+        /* Status messages */
+        .stSuccess, .stInfo, .stWarning, .stError {
+            background-color: var(--card-bg) !important;
+            color: var(--text-color) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 8px !important;
+            padding: 1rem !important;
+        }
+
+        /* Hide Streamlit branding */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+
+        /* Improve spacing */
+        [data-testid="column"] {
+            padding: 0 !important;
+            margin: 0 1rem !important;
+        }
+
+        /* Video URL input container */
+        .video-input-container {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            margin: 2rem 0;
+        }
+
+        /* Summary results container */
+        .results-container {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            margin-top: 2rem;
         }
     </style>
-""",
+    """,
     unsafe_allow_html=True,
 )
 
@@ -229,62 +316,28 @@ def summarize_video(
 
 
 def main():
-    # Remove the existing title
-    # st.title("YouTube Video Summarizer")
+    # Settings section
+    st.write("## AI Video Summarizer")
 
-    # Add input for custom Ollama URL
-    default_ollama_url = os.getenv("OLLAMA_URL")
-    ollama_url = st.text_input(
-        "Ollama URL (optional)",
-        value=default_ollama_url,
-        placeholder="Enter custom Ollama URL",
-    )
-
-    if not ollama_url:
-        ollama_url = default_ollama_url
-
-    # Fetch available models using the specified Ollama URL
-    available_models = get_ollama_models(ollama_url)
-    default_model = os.getenv("OLLAMA_MODEL")
-
-    if not default_model in available_models:
-        available_models.append(default_model)
-
-    # Sets whisper options
-    default_whisper_url = os.getenv("WHISPER_URL")
-    whisper_url = st.text_input(
-        "Whisper URL (optional)",
-        value=default_whisper_url,
-        placeholder="Enter custom Whisper URL",
-    )
-    if not whisper_url:
-        whisper_url = default_whisper_url
-    whisper_model = os.getenv("WHISPER_MODEL")
-    if not whisper_model:
-        whisper_model = "Systran/faster-whisper-large-v3"
-    st.caption(f"Whisper model: {whisper_model}")
-
-    # Create model selection dropdown
-    # selected_model = st.selectbox(
-    #    "Select Ollama Model",
-    #    options=available_models,
-    #    index=(
-    #        available_models.index(default_model)
-    #        if default_model in available_models
-    #        else 0
-    #    ),
-    # )
-
-    # Use columns for URL and model inputs
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        video_url = st.text_input(
-            "Enter the YouTube video URL:",
-            placeholder="https://www.youtube.com/watch?v=...",
+    # Ollama Settings - single card
+    with st.container():
+        st.subheader("🎯 Ollama Settings")
+        default_ollama_url = os.getenv("OLLAMA_URL")
+        ollama_url = st.text_input(
+            "Ollama URL",
+            value=default_ollama_url,
+            placeholder="Enter Ollama URL",
         )
-    with col2:
+        if not ollama_url:
+            ollama_url = default_ollama_url
+
+        available_models = get_ollama_models(ollama_url)
+        default_model = os.getenv("OLLAMA_MODEL")
+        if default_model not in available_models:
+            available_models.append(default_model)
+
         selected_model = st.selectbox(
-            "Select Ollama Model",
+            "Model",
             options=available_models,
             index=(
                 available_models.index(default_model)
@@ -293,89 +346,107 @@ def main():
             ),
         )
 
-    # Group Ollama and Whisper settings
-    with st.expander("Advanced Settings"):
-        col1, col2 = st.columns(2)
-        with col1:
-            ollama_url = st.text_input(
-                "Ollama URL",
-                value=default_ollama_url,
-                placeholder="Enter custom Ollama URL",
-            )
-        with col2:
-            whisper_url = st.text_input(
-                "Whisper URL",
-                value=default_whisper_url,
-                placeholder="Enter custom Whisper URL",
+    # Video URL input section
+    with st.container():
+        url_col, button_col = st.columns([4, 1])
+
+        with url_col:
+            video_url = st.text_input(
+                "🎥 Video URL",
+                placeholder="https://www.youtube.com/watch?v=...",
             )
 
-        col1, col2 = st.columns(2)
-        with col1:
+        with button_col:
+            summarize_button = st.button("🚀 Summarize", use_container_width=True)
+
+    # Advanced settings in collapsible sections
+    with st.expander("⚙️ Advanced Settings"):
+        # Whisper Settings
+        st.subheader("🎤 Whisper Settings")
+        default_whisper_url = os.getenv("WHISPER_URL")
+        whisper_url = st.text_input(
+            "Whisper URL",
+            value=default_whisper_url,
+            placeholder="Enter Whisper URL",
+        )
+        if not whisper_url:
+            whisper_url = default_whisper_url
+
+        whisper_model = os.getenv("WHISPER_MODEL")
+        if not whisper_model:
+            whisper_model = "Systran/faster-whisper-large-v3"
+        st.caption(f"Current model: {whisper_model}")
+
+        st.markdown("<br>", unsafe_allow_html=True)  # Add some spacing
+
+        # Whisper Options
+        adv_col1, adv_col2 = st.columns(2)
+        with adv_col1:
             force_whisper = st.checkbox("Force Whisper", value=False)
-        with col2:
+        with adv_col2:
             fallback_to_whisper = st.checkbox("Fallback to Whisper", value=True)
 
-    # Support any video that has a valid YouTube ID
-    if not "https://www.youtube.com/watch?v=" or "https://youtu.be/" in video_url:
-        if "watch?v=" in video_url:
-            st.warning(
-                "This is not a YouTube URL. Might be a privacy-fronted embed. Trying to extract the YouTube ID..."
-            )
-            video_id = video_url.split("watch?v=")[-1]
-            video_url = f"https://www.youtube.com/watch?v={video_id}"
-        else:
-            st.error("Please enter a valid YouTube video URL.")
-            return
-    # Support short urls as well
-    if "https://youtu.be/" in video_url:
-        video_id = video_url.split("youtu.be/")[-1]
-        video_url = f"https://www.youtube.com/watch?v={video_id}"
+    if summarize_button and video_url:
+        summary = summarize_video(
+            video_url,
+            selected_model,
+            ollama_url,
+            fallback_to_whisper=fallback_to_whisper,
+            force_whisper=force_whisper,
+        )
 
-    if st.button("Summarize"):
-        if video_url:
-            summary = summarize_video(
-                video_url,
-                selected_model,
-                ollama_url,
-                fallback_to_whisper=fallback_to_whisper,
-                force_whisper=force_whisper,
-            )
-            st.subheader("Video Information:")
+        # Video Information
+        st.subheader("📺 Video Information")
+        info_col1, info_col2 = st.columns(2)
+        with info_col1:
             st.write(f"**Title:** {summary['title']}")
+        with info_col2:
             st.write(f"**Channel:** {summary['channel']}")
 
-            st.subheader("Summary:")
-            st.write(summary["summary"])
+        # Transcript Section
+        with st.expander("📝 Original Transcript", expanded=False):
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.text_area(
+                    "Raw Transcript",
+                    summary["transcript"],
+                    height=200,
+                    disabled=True,
+                )
+            with col2:
+                if st.button("🔄 Rephrase"):
+                    with st.spinner("Rephrasing transcript..."):
+                        ollama_client = OllamaClient(ollama_url, selected_model)
+                        prompt = f"Rephrase the following transcript to make it more readable and well-formatted, keeping the main content intact:\n\n{summary['transcript']}"
+                        rephrased = ollama_client.generate(prompt)
+                        st.markdown(rephrased)
 
-            st.subheader("Original Transcript:")
-            st.text_area(
-                "Full Transcript", summary["transcript"], height=300, disabled=True
-            )
-
-            # Share button moved here, after the transcript
-            if st.button("Share Transcript"):
-                try:
-                    content = f"""Video Title: {summary['title']}
+                if st.button("📋 Share"):
+                    try:
+                        content = f"""Video Title: {summary['title']}
 Channel: {summary['channel']}
 URL: {video_url}
 
 --- Transcript ---
 
 {summary['transcript']}"""
-
-                    paste_url = create_paste(f"Transcript: {summary['title']}", content)
-                    st.success(
-                        f"Transcript shared successfully! [View here]({paste_url})"
-                    )
-                except Exception as e:
-                    if "PASTEBIN_API_KEY" not in os.environ:
-                        st.warning(
-                            "PASTEBIN_API_KEY not found in environment variables"
+                        paste_url = create_paste(
+                            f"Transcript: {summary['title']}", content
                         )
-                    else:
-                        st.error(f"Error sharing transcript: {str(e)}")
-        else:
-            st.error("Please enter a valid YouTube video URL.")
+                        st.success(
+                            f"Transcript shared successfully! [View here]({paste_url})"
+                        )
+                    except Exception as e:
+                        if "PASTEBIN_API_KEY" not in os.environ:
+                            st.warning(
+                                "PASTEBIN_API_KEY not found in environment variables"
+                            )
+                        else:
+                            st.error(f"Error sharing transcript: {str(e)}")
+
+        # Summary Section
+        st.subheader("📊 AI Summary")
+        st.markdown(summary["summary"])
 
 
 if __name__ == "__main__":
