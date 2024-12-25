@@ -160,6 +160,10 @@ st.markdown(
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# Initialize session state for rephrased transcript if not exists
+if "rephrased_transcript" not in st.session_state:
+    st.session_state.rephrased_transcript = None
+
 # Create a single header container
 header = st.container()
 
@@ -418,8 +422,9 @@ def main():
                     with st.spinner("Rephrasing transcript..."):
                         ollama_client = OllamaClient(ollama_url, selected_model)
                         prompt = f"Rephrase the following transcript to make it more readable and well-formatted, keeping the main content intact:\n\n{summary['transcript']}"
-                        rephrased = ollama_client.generate(prompt)
-                        st.markdown(rephrased)
+                        st.session_state.rephrased_transcript = ollama_client.generate(
+                            prompt
+                        )
 
                 if st.button("📋 Share"):
                     try:
@@ -447,6 +452,10 @@ URL: {video_url}
         # Summary Section
         st.subheader("📊 AI Summary")
         st.markdown(summary["summary"])
+
+        # After the rephrase button, add:
+        if st.session_state.rephrased_transcript:
+            st.markdown(st.session_state.rephrased_transcript)
 
 
 if __name__ == "__main__":
