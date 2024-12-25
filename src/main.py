@@ -252,7 +252,12 @@ def get_ollama_models(ollama_url):
 
 
 def summarize_video(
-    video_url, model, ollama_url, fallback_to_whisper=True, force_whisper=False
+    video_url,
+    model,
+    ollama_url,
+    fallback_to_whisper=True,
+    force_whisper=False,
+    use_po_token=None,
 ):
     video_id = None
     # Get the video id from the url if it's a valid youtube or invidious or any other url that contains a video id
@@ -284,7 +289,7 @@ def summarize_video(
             show_warning("Unable to fetch transcript. Trying to download audio...")
         try:
             print("Downloading audio...")
-            download_audio(video_url)
+            download_audio(video_url, use_po_token=use_po_token)
             show_info("Audio downloaded successfully!")
             show_warning("Starting transcription...it might take a while...")
             transcript = transcribe("downloads/output.m4a")
@@ -320,7 +325,12 @@ def summarize_video(
 
 
 def fix_transcript(
-    video_url, model, ollama_url, fallback_to_whisper=True, force_whisper=False
+    video_url,
+    model,
+    ollama_url,
+    fallback_to_whisper=True,
+    force_whisper=False,
+    use_po_token=None,
 ):
     video_id = None
     # Get the video id from the url if it's a valid youtube or invidious or any other url that contains a video id
@@ -352,7 +362,7 @@ def fix_transcript(
             show_warning("Unable to fetch transcript. Trying to download audio...")
         try:
             print("Downloading audio...")
-            download_audio(video_url)
+            download_audio(video_url, use_po_token=use_po_token)
             show_info("Audio downloaded successfully!")
             show_warning("Starting transcription...it might take a while...")
             transcript = transcribe("downloads/output.m4a")
@@ -437,31 +447,27 @@ def main():
             read_button = st.button("📖 Read", use_container_width=True)
 
     # Advanced settings in collapsible sections
-    with st.expander("⚙️ Advanced Settings"):
-        # Whisper Settings
-        st.subheader("🎤 Whisper Settings")
-        default_whisper_url = os.getenv("WHISPER_URL")
-        whisper_url = st.text_input(
-            "Whisper URL",
-            value=default_whisper_url,
-            placeholder="Enter Whisper URL",
-        )
-        if not whisper_url:
-            whisper_url = default_whisper_url
+    with st.expander("⚙️ Advanced Settings", expanded=False):
+        col1, col2 = st.columns(2)
 
-        whisper_model = os.getenv("WHISPER_MODEL")
-        if not whisper_model:
-            whisper_model = "Systran/faster-whisper-large-v3"
-        st.caption(f"Current model: {whisper_model}")
+        with col1:
+            fallback_to_whisper = st.checkbox(
+                "Fallback to Whisper",
+                value=True,
+                help="If no transcript is available, try to generate one using Whisper",
+            )
+            force_whisper = st.checkbox(
+                "Force Whisper",
+                value=False,
+                help="Always use Whisper for transcription",
+            )
 
-        st.markdown("<br>", unsafe_allow_html=True)  # Add some spacing
-
-        # Whisper Options
-        adv_col1, adv_col2 = st.columns(2)
-        with adv_col1:
-            force_whisper = st.checkbox("Force Whisper", value=False)
-        with adv_col2:
-            fallback_to_whisper = st.checkbox("Fallback to Whisper", value=True)
+        with col2:
+            use_po_token = st.checkbox(
+                "Use PO Token",
+                value=get_po_token_setting(),  # Default from environment
+                help="Use PO token for YouTube authentication (helps bypass restrictions)",
+            )
 
     if (summarize_button or read_button) and video_url:
         if read_button:
@@ -472,6 +478,7 @@ def main():
                 ollama_url,
                 fallback_to_whisper=fallback_to_whisper,
                 force_whisper=force_whisper,
+                use_po_token=use_po_token,
             )
 
             # Display results
@@ -502,6 +509,7 @@ def main():
                 ollama_url,
                 fallback_to_whisper=fallback_to_whisper,
                 force_whisper=force_whisper,
+                use_po_token=use_po_token,
             )
 
             # Video Information

@@ -1,20 +1,29 @@
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
+from dotenv import load_dotenv
+import os
 
-"""e.g.
-https://www.youtube.com/watch?v=vwTDiLH6mqg
-"""
+load_dotenv()
 
 
-def download_audio(url):
+def get_po_token_setting():
+    env_setting = os.getenv("USE_PO_TOKEN", "true").lower() == "true"
+    return env_setting
+
+
+def download_audio(url, use_po_token=None):
     try:
+        # If use_po_token is not provided, use the environment variable
+        if use_po_token is None:
+            use_po_token = get_po_token_setting()
+
         # Create YouTube object with bot detection bypass
         yt = YouTube(
             url,
             on_progress_callback=on_progress,
             use_oauth=True,
             allow_oauth_cache=True,
-            use_po_token=True,  # Add this to bypass bot detection
+            use_po_token=use_po_token,  # Now configurable
         )
 
         # Get audio stream
