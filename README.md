@@ -150,3 +150,6 @@ summarize_prompt = Please provide a comprehensive yet concise summary of the fol
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details. 
+## Support
+
+If this project saved you time, you can support my work via [PayPal](https://paypal.me/dacookingsenpai).
